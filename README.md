@@ -23,7 +23,7 @@ Timezone conversion support (classes are stored in IST, but can be shown in user
 
 Error handling for missing fields, overbooking, invalid emails, etc.
 
-##Tech Stack
+## Tech Stack
 
 Backend: FastAPI (Python)
 
@@ -32,17 +32,16 @@ Database: SQLite (in-memory/file-based)
 Timezone: pytz and datetime for conversions
 
 ## Validation: Pydantic models
-
-### Project Structure
- main.py         # Entry point for FastAPI app
- models.py       # Database models (Users, Classes, Bookings)
- schemas.py      # Pydantic schemas for request/response validation
- utils.py        # Helper functions (timezone conversion, validators)
- emailer.py      # Utility for sending email notifications
- seed.py         # Script tfor already having initial data (classes, users, etc.)
- booking.db      # SQLite database 
- requirements.txt # Python dependencies
- README.md       # Project documentation
+ Project Structure
+### main.py         - Entry point for FastAPI app
+### models.py       - Database models (Users, Classes, Bookings)
+### schemas.py      - Pydantic schemas for request/response validation
+### utils.py        - Helper functions (timezone conversion, validators)
+### emailer.py      - Utility for sending email notifications
+### seed.py         - Script tfor already having initial data (classes, users, etc.)
+### booking.db      - SQLite database 
+### requirements.txt - Python dependencies
+### README.md       - Project documentation
 
 
 ## Setup Instructions
