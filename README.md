@@ -1,14 +1,15 @@
-RAAGAVI FITNESS STUDIO BOOKING API
+# RAAGAVI FITNESS STUDIO BOOKING API
 
 This project is a simple backend API for a fictional fitness studio. The goal is to allow clients to view available classes, register as users, and book a spot in their preferred fitness session.
 
 The API is built using FastAPI with SQLite as the database and includes proper timezone handling (IST to user’s timezone).
+
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python)
 ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite)
 
 
-##Features
+## Features
 
 User registration with validation (name, email, password).
 
@@ -30,21 +31,21 @@ Database: SQLite (in-memory/file-based)
 
 Timezone: pytz and datetime for conversions
 
-##Validation: Pydantic models
+## Validation: Pydantic models
 
-📂 Project Structure
-├── main.py         # Entry point for FastAPI app
-├── models.py       # Database models (Users, Classes, Bookings)
-├── schemas.py      # Pydantic schemas for request/response validation
-├── utils.py        # Helper functions (timezone conversion, validators)
-├── emailer.py      # Utility for sending email notifications
-├── seed.py         # Script tfor already having initial data (classes, users, etc.)
-├── booking.db      # SQLite database 
-├── requirements.txt # Python dependencies
-└── README.md       # Project documentation
+### Project Structure
+ main.py         # Entry point for FastAPI app
+ models.py       # Database models (Users, Classes, Bookings)
+ schemas.py      # Pydantic schemas for request/response validation
+ utils.py        # Helper functions (timezone conversion, validators)
+ emailer.py      # Utility for sending email notifications
+ seed.py         # Script tfor already having initial data (classes, users, etc.)
+ booking.db      # SQLite database 
+ requirements.txt # Python dependencies
+ README.md       # Project documentation
 
 
-##Setup Instructions
+## Setup Instructions
 
 Clone the repository
 
@@ -52,23 +53,23 @@ git clone https://github.com/raagz04/fitness-class-booking-api.git
 cd fitness-booking-api
 
 
-##Created and activated a virtual environment
+## Created and activated a virtual environment
 
 python -m venv fitness
 .\fitness\Scripts\activate
 
-##Required dependencies to install
+## Required dependencies to install
 
 pip install -r requirements.txt
 
-##Command To Run the FastAPI app
+## Command To Run the FastAPI app
 
 uvicorn main:app --reload
 
 The server will start at: http://127.0.0.1:8000  
 Interactive API docs (Swagger UI) available at: http://127.0.0.1:8000/docs
 
-##API Endpoints
+## API Endpoints
 
 1. To register a User
 POST /users
@@ -115,26 +116,26 @@ GET /bookings?email=raagavi@fitness.com
 
 Returns all bookings for the given email.
 
---Seed Data
+## Seed Data
 
 By default, the database is seeded with a few sample classes (Yoga, Zumba, HIIT) so that you can start testing immediately.
 
 If you want to reset the database, just delete booking.db and rerun the app — it will regenerate with fresh sample data.
 
 Example cURL Requests
-# Create user
+### Create user
 curl -X POST "http://127.0.0.1:8000/users" -H "Content-Type: application/json" -d '{"name":"John","email":"john@example.com","password":"test123"}'
 
-# Get classes
+### Get classes
 curl -X GET "http://127.0.0.1:8000/classes"
 
-# Book class
+### Book class
 curl -X POST "http://127.0.0.1:8000/book" -H "Content-Type: application/json" -d '{"class_id":1,"client_email":"john@example.com"}'
 
-# Get bookings
+### Get bookings
 curl -X GET "http://127.0.0.1:8000/bookings?email=john@example.com"
 
-##Loom Video
+## Loom Video
 
 A walkthrough video is included demonstrating:
 
@@ -143,7 +144,7 @@ A walkthrough video is included demonstrating:
 -Booking a class
 -Error handling (invalid inputs, overbooking, etc.)
 
-##Extra Features Implemented
+## Extra Features Implemented
 
 Input validation with Pydantic
 Email format checking
