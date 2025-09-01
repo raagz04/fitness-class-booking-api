@@ -117,22 +117,20 @@ Returns all bookings for the given email.
 
 ## Seed Data
 
-By default, the database is seeded with a few sample classes (Yoga, Zumba, HIIT) so that you can start testing immediately.
-
-If you want to reset the database, just delete booking.db and rerun the app — it will regenerate with fresh sample data.
+By default,the database is seeded with a few sample classes (Yoga, Zumba, HIIT) so that we can start testing immediately.
 
 Example cURL Requests
 ### Create user
-curl -X POST "http://127.0.0.1:8000/users" -H "Content-Type: application/json" -d '{"name":"John","email":"john@example.com","password":"test123"}'
+curl -X POST "http://127.0.0.1:8000/users" -H "Content-Type: application/json" -d '{"name":"Raagavi","email":"raagavi@fitness.com","password":"test123"}'
 
 ### Get classes
 curl -X GET "http://127.0.0.1:8000/classes"
 
 ### Book class
-curl -X POST "http://127.0.0.1:8000/book" -H "Content-Type: application/json" -d '{"class_id":1,"client_email":"john@example.com"}'
+curl -X POST "http://127.0.0.1:8000/book" -H "Content-Type: application/json" -d '{"class_id":1,"client_email":"raagavi@fitness.com"}'
 
 ### Get bookings
-curl -X GET "http://127.0.0.1:8000/bookings?email=john@example.com"
+curl -X GET "http://127.0.0.1:8000/bookings?email=raagavi@fitness.com"
 
 ## Loom Video
 

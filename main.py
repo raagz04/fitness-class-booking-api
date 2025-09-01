@@ -6,18 +6,18 @@ from sqlalchemy.exc import IntegrityError
 from schemas import UserCreate
 from database import engine, SessionLocal, Base, get_db
 import models, schemas, utils, seed, emailer
-from fastapi import Body
 
 logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(title="Raagavi Fitness Class Booking API")
 
-#table creation
+# Create tables
 Base.metadata.create_all(bind=engine)
+
+# User creation endpoint
 
 @app.post("/users", status_code=201)
 def create_user(payload: UserCreate, db: Session = Depends(get_db)):
-    # Checking if email already exists
     existing = db.query(models.User).filter(models.User.email == payload.email.lower()).first()
     if existing:
         raise HTTPException(status_code=409, detail="Email already registered.")
@@ -25,16 +25,17 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     user = models.User(
         name=payload.name,
         email=payload.email.lower(),
-        password=payload.password 
+        password=payload.password
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return {"id": user.id, "name": user.name, "email": user.email}
 
+# Startup: seed classes
+
 @app.on_event("startup")
 def startup():
-    """Seed the DB with sample classes if not already present"""
     db = SessionLocal()
     try:
         seed.seed_data(db)
@@ -42,18 +43,19 @@ def startup():
     finally:
         db.close()
 
+# Health check endpoint
+
 @app.get("/health")
 def health():
-    """Health check endpoint"""
     return {"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}
 
+# Get all classes
 
 @app.get("/classes", response_model=list[schemas.ClassOut])
 def get_classes(
     tz: str | None = Query(default="Asia/Kolkata"),
     db: Session = Depends(get_db)
 ):
-    """List all classes with available slots"""
     tz = utils.ensure_tz_name(tz)
     classes = db.query(models.FitnessClass).order_by(models.FitnessClass.date_time).all()
 
@@ -61,17 +63,19 @@ def get_classes(
     for c in classes:
         booked = db.query(models.Booking).filter(models.Booking.class_id == c.id).count()
         available = c.capacity - booked
+        local_time = utils.utc_iso_to_tz(c.date_time, tz) 
         out.append(schemas.ClassOut(
             id=c.id,
             name=c.name,
             instructor=c.instructor,
-            start_time=c.date_time.isoformat() + "Z", 
+            start_time=local_time,
             timezone=tz,
             capacity=c.capacity,
             available_slots=available
         ))
     return out
 
+# Book a class
 
 @app.post("/book", response_model=schemas.BookingOut, status_code=201)
 def book_class(
@@ -79,18 +83,14 @@ def book_class(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """Book a slot for a class"""
-    #To Check if class exists
     c = db.query(models.FitnessClass).filter(models.FitnessClass.id == payload.class_id).first()
     if not c:
         raise HTTPException(status_code=404, detail="Class not found.")
 
-    #Checking availability
     booked_count = db.query(models.Booking).filter(models.Booking.class_id == c.id).count()
     if c.capacity - booked_count <= 0:
         raise HTTPException(status_code=409, detail="No slots available for this class.")
 
-    #Prevent duplicate booking for same email
     existing = db.query(models.Booking).filter(
         models.Booking.class_id == c.id,
         models.Booking.client_email == payload.client_email.lower()
@@ -98,7 +98,6 @@ def book_class(
     if existing:
         raise HTTPException(status_code=409, detail="You have already booked this class with this email.")
 
-    #Create booking
     booking = models.Booking(
         class_id=payload.class_id,
         client_name=payload.client_name.strip(),
@@ -113,7 +112,7 @@ def book_class(
         raise HTTPException(status_code=409, detail="Booking conflict (duplicate).")
     db.refresh(booking)
 
-    #Scheduling email notification in background
+    # Schedule email
     try:
         local_time = utils.utc_iso_to_tz(c.date_time, "Asia/Kolkata")
     except Exception:
@@ -126,7 +125,7 @@ def book_class(
         f"Class: {c.name}\n"
         f"Instructor: {c.instructor}\n"
         f"Start (IST): {local_time}\n\n"
-        "See you there!\n Raagavi Fitness Studio"
+        "See you there!\nRaagavi Fitness Studio"
     )
     background_tasks.add_task(emailer.send_email, booking.client_email, subject, body)
 
@@ -135,13 +134,15 @@ def book_class(
         class_id=booking.class_id,
         client_name=booking.client_name,
         client_email=booking.client_email,
-        created_at=booking.booked_at.isoformat() + "Z", 
+        created_at=booking.booked_at.isoformat() + "Z",
         class_name=c.name,
         instructor=c.instructor,
-        start_time=c.date_time.isoformat() + "Z",      
+        start_time=utils.utc_iso_to_tz(c.date_time, "UTC"),
         timezone="UTC"
     )
 
+
+# Get bookings for an email
 
 @app.get("/bookings", response_model=list[schemas.BookingOut])
 def get_bookings(
@@ -149,7 +150,6 @@ def get_bookings(
     tz: str | None = Query(default="Asia/Kolkata"),
     db: Session = Depends(get_db)
 ):
-    """Get all bookings for a given email"""
     tz = utils.ensure_tz_name(tz)
     rows = (
         db.query(models.Booking, models.FitnessClass)
@@ -161,15 +161,16 @@ def get_bookings(
 
     out = []
     for b, c in rows:
+        local_time = utils.utc_iso_to_tz(c.date_time, tz)  # ✅ convert to requested tz
         out.append(schemas.BookingOut(
             id=b.id,
             class_id=b.class_id,
             client_name=b.client_name,
             client_email=b.client_email,
-            created_at=b.booked_at.isoformat() + "Z",  
+            created_at=b.booked_at.isoformat() + "Z",
             class_name=c.name,
             instructor=c.instructor,
-            start_time=c.date_time.isoformat() + "Z", 
+            start_time=local_time,
             timezone=tz
         ))
     return out
